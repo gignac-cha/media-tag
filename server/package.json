@@ -1,0 +1,31 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon -w src -x ts-node src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@elastic/elasticsearch": "^8.7.0",
+    "@fastify/static": "^6.10.1",
+    "@fastify/websocket": "^8.1.0",
+    "dayjs": "^1.11.7",
+    "fastify": "^4.17.0",
+    "mercurius": "^13.0.0",
+    "pg": "^8.11.0",
+    "pg-native": "^3.0.1",
+    "typeorm": "^0.3.16",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.2.1",
+    "@types/uuid": "^9.0.1",
+    "@types/ws": "^8.5.4",
+    "nodemon": "^2.0.22",
+    "ts-node": "^10.9.1"
+  }
+}
