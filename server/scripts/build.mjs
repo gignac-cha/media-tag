@@ -1,4 +1,6 @@
 import { build } from 'esbuild';
+import { resolveDecoratorWithTSC } from '../plugins/resolveDecoratorWithTSC.mjs';
+import { resolveGraphQL } from '../plugins/resolveGraphQL.mjs';
 
 build({
   entryPoints: ['src/index.ts'],
@@ -7,4 +9,5 @@ build({
   target: 'node18',
   bundle: true,
   minify: true,
+  plugins: [resolveGraphQL(), resolveDecoratorWithTSC()],
 });
