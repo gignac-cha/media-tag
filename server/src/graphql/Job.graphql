@@ -1,0 +1,7 @@
+enum Job {
+  WRITER
+  PAINTER
+  DIRECTOR
+  ACTOR
+  VOICE_ACTOR
+}

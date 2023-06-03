@@ -1,0 +1,4 @@
+input MediaInput {
+  uuid: String!
+  user: UserInput
+}

@@ -1,0 +1,5 @@
+type Creator {
+  uuid: String!
+  name: String!
+  jobs: [Job]!
+}

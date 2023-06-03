@@ -1,0 +1,4 @@
+type Series {
+  uuid: String!
+  name: String!
+}

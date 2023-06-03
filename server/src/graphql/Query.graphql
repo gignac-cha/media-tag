@@ -1,0 +1,4 @@
+type Query {
+  novels: [Novel]!
+  novel(uuid: String!, user: UserInput): Novel
+}

@@ -1,0 +1,7 @@
+enum Category {
+  NOVEL
+  COMIC
+  ANIMATION
+  DRAMA
+  MOVIE
+}

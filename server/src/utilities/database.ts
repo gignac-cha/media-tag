@@ -15,7 +15,7 @@ declare module 'fastify' {
 const getDataSource = (instance: FastifyInstance): DataSource =>
   new DataSource({
     ...instance.configuration.postgres,
-    entities: [],
+    entities: [Novel, Creator, Company, Series, User],
   });
 
 export const fastifyDataSource = (instance: FastifyInstance): FastifyInstance => instance.decorate('dataSource', getDataSource(instance));

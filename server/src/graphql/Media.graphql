@@ -1,0 +1,10 @@
+interface Media {
+  uuid: String!
+  category: Category!
+  title: String!
+  subtitle: String
+  creators: [Creator]!
+  series: [Series]!
+  publisher: Company!
+  publishedAt: Date!
+}
