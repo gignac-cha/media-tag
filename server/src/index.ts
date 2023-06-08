@@ -5,6 +5,7 @@ import { join } from 'path';
 import { getResolvers } from './graphql/resolvers';
 import { fastifyConfiguration } from './utilities/configuration';
 import { fastifyDataSource } from './utilities/database';
+import { fastifyElasticsearch } from './utilities/elasticsearch';
 
 const server: FastifyInstance = fastify({
   logger: true,
@@ -15,6 +16,8 @@ fastifyDataSource(server);
 
 const { schema } = loadSchemaFiles(join(__dirname, 'graphql', '*.graphql'));
 server.register(mercurius, { schema, resolvers: getResolvers(server) });
+
+server.register(fastifyElasticsearch);
 
 server.addHook('onClose', async (instnace: FastifyInstance, done: (err: Error) => void) => {
   console.log('onClose');

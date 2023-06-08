@@ -1,4 +1,6 @@
+import { ClientOptions } from '@elastic/elasticsearch';
 import { FastifyInstance } from 'fastify';
+import { readFile } from 'fs/promises';
 import { DataSourceOptions } from 'typeorm';
 
 declare module 'fastify' {
@@ -8,11 +10,13 @@ declare module 'fastify' {
 }
 
 type PostgresConfiguration = DataSourceOptions;
+type ElasticsearchConfiguration = ClientOptions;
 interface Configuration {
   postgres: PostgresConfiguration;
+  elasticsearch: ElasticsearchConfiguration;
 }
 
-const generateConfigurationFromEnv = (instance: FastifyInstance): Configuration => {
+const generateConfigurationFromEnv = async (instance: FastifyInstance): Promise<Configuration> => {
   const postgres: PostgresConfiguration = {
     type: 'postgres',
     host: process.env.POSTGRES_HOST,
@@ -26,7 +30,18 @@ const generateConfigurationFromEnv = (instance: FastifyInstance): Configuration 
     // subscribers: [],
     // migrations: [],
   };
-  return { postgres };
+  const elasticsearch: ElasticsearchConfiguration = {
+    node: process.env.ELASTICSEARCH_NODE,
+    auth: {
+      username: process.env.ELASTICSEARCH_USERNAME,
+      password: process.env.ELASTICSEARCH_PASSWORD,
+    },
+    tls: {
+      ca: await readFile(process.env.ELASTICSEARCH_TLS_CA),
+      rejectUnauthorized: false,
+    },
+  };
+  return { postgres, elasticsearch };
 };
 
 export const fastifyConfiguration = (instance: FastifyInstance): FastifyInstance => instance.decorate('configuration', generateConfigurationFromEnv(instance));
