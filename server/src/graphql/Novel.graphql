@@ -7,6 +7,7 @@ type Novel implements Media {
   series: [Series]!
   publisher: Company!
   publishedAt: Date!
+  tags: [Tag]!
   volume: String!
   page: Int!
   ISBN: String!

@@ -14,3 +14,10 @@ export enum Job {
   ACTOR = 'ACTOR',
   VOICE_ACTOR = 'VOICE_ACTOR',
 }
+
+export enum TagAction {
+  ADD = 'ADD',
+  REMOVE = 'REMOVE',
+  INCREASE = 'INCREASE',
+  DECREASE = 'DECREASE',
+}

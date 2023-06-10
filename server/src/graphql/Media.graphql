@@ -7,4 +7,5 @@ interface Media {
   series: [Series]!
   publisher: Company!
   publishedAt: Date!
+  tags: [Tag]!
 }
