@@ -1,0 +1,8 @@
+# type TagOutput {
+#   action: String!
+# }
+type TagOutput {
+  value: String!
+  count: Int!
+  active: Boolean
+}

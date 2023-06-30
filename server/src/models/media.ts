@@ -2,7 +2,7 @@ import { Column, Generated, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedCo
 import { Company } from './company';
 import { Creator } from './creator';
 import { Series } from './series';
-import { Category } from './types';
+import { Category } from '../../../types/graphql/generated';
 
 export abstract class Media {
   @PrimaryGeneratedColumn()

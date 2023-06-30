@@ -1,0 +1,5 @@
+input IncreaseTagInput {
+  tag: TagInput!
+  media: MediaInput!
+  user: UserInput!
+}

@@ -1,8 +1,0 @@
-declare enum Job {
-  AUTHOR = 'AUTHOR',
-  WRITER = 'WRITER',
-  PAINTER = 'PAINTER',
-  DIRECTOR = 'DIRECTOR',
-  ACTOR = 'ACTOR',
-  VOICE_ACTOR = 'VOICE_ACTOR',
-}

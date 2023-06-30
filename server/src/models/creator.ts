@@ -1,5 +1,5 @@
 import { Column, Entity, Generated, PrimaryGeneratedColumn } from 'typeorm';
-import { Job } from './types';
+import { Job } from '../../../types/graphql/generated';
 
 @Entity({ name: 'creators' })
 export class Creator {

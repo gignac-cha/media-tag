@@ -12,7 +12,7 @@ declare module 'fastify' {
   }
 }
 
-const getDataSource = (instance: FastifyInstance): DataSource =>
+export const getDataSource = (instance: FastifyInstance): DataSource =>
   new DataSource({
     ...instance.configuration.postgres,
     entities: [Novel, Creator, Company, Series, User],

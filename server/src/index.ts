@@ -1,3 +1,4 @@
+import fastifyCors from '@fastify/cors';
 import fastifyWebsocket from '@fastify/websocket';
 import fastify, { FastifyInstance } from 'fastify';
 import mercurius from 'mercurius';
@@ -14,24 +15,27 @@ const server: FastifyInstance = fastify({
   logger: true,
 });
 
-fastifyConfiguration(server);
-fastifyDataSource(server);
-
-const { schema } = loadSchemaFiles(join(__dirname, 'graphql', '*.graphql'));
-server.register(mercurius, { schema, resolvers: getResolvers(server) });
-
-server.register(fastifyElasticsearch);
-
-fastifyWebSocketClients(server);
-
-server.register(fastifyWebsocket);
-server.register(routeTag);
+server.register(fastifyCors);
 
 server.addHook('onClose', async (instnace: FastifyInstance, done: (err: Error) => void) => {
   console.log('onClose');
   await server.dataSource.destroy();
 });
 
-server.listen({ port: 3000 }).then(async () => {
+Promise.resolve().then(async () => {
+  await fastifyConfiguration(server);
+  fastifyDataSource(server);
   await server.dataSource.initialize();
+
+  const { schema } = loadSchemaFiles(join(__dirname, 'graphql', '*.graphql'));
+  server.register(mercurius, { schema, resolvers: getResolvers(server) });
+
+  fastifyElasticsearch(server);
+
+  fastifyWebSocketClients(server);
+
+  server.register(fastifyWebsocket);
+  server.register(routeTag);
+
+  await server.listen({ port: 3000 });
 });

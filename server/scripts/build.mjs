@@ -9,5 +9,6 @@ build({
   target: 'node18',
   bundle: true,
   minify: true,
+  external: ['mercurius-codegen'],
   plugins: [resolveGraphQL(), resolveDecoratorWithTSC()],
 });

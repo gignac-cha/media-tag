@@ -16,7 +16,7 @@ interface Configuration {
   elasticsearch: ElasticsearchConfiguration;
 }
 
-const generateConfigurationFromEnv = async (instance: FastifyInstance): Promise<Configuration> => {
+export const generateConfigurationFromEnv = async (): Promise<Configuration> => {
   const postgres: PostgresConfiguration = {
     type: 'postgres',
     host: process.env.POSTGRES_HOST,
@@ -44,4 +44,5 @@ const generateConfigurationFromEnv = async (instance: FastifyInstance): Promise<
   return { postgres, elasticsearch };
 };
 
-export const fastifyConfiguration = (instance: FastifyInstance): FastifyInstance => instance.decorate('configuration', generateConfigurationFromEnv(instance));
+export const fastifyConfiguration = async (instance: FastifyInstance): Promise<FastifyInstance> =>
+  instance.decorate('configuration', await generateConfigurationFromEnv());

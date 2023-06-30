@@ -1,8 +1,8 @@
 import { AggregationsRangeBucketKeys, AggregationsTermsAggregateBase, AggregationsValueCountAggregate, SearchHit } from '@elastic/elasticsearch/lib/api/types';
 import dayjs, { Dayjs } from 'dayjs';
 import { Media } from '../models/media';
-import { TagAction } from '../models/types';
 import { FastifyInstance } from 'fastify';
+import { MediaInput, TagAction, TagInput, TagOutput, UserInput } from '../../../types/graphql/generated';
 
 export const getTagCounts = async (instance: FastifyInstance, media: MediaInput): Promise<Nullable<TagCount[]>> => {
   const termsAggregationsName = 'aggs:terms:value';
@@ -74,7 +74,7 @@ export const getTagCount = async (instance: FastifyInstance, media: MediaInput, 
   };
   return tagCount;
 };
-export const getMyTags = async (instance: FastifyInstance, tagCounts: TagCount[], media: Media, user?: UserInput): Promise<Tag[]> => {
+export const getMyTags = async (instance: FastifyInstance, tagCounts: TagCount[], media: Media, user?: UserInput): Promise<TagOutput[]> => {
   if (!user) {
     return tagCounts;
   }
@@ -96,7 +96,7 @@ export const getMyTags = async (instance: FastifyInstance, tagCounts: TagCount[]
   const myTags: string[] = searchResponse.hits.hits
     .flatMap<string>((searchHit: SearchHit) => (searchHit.fields ? searchHit.fields['value.keyword'] : undefined))
     .filter<string>((value: string): value is string => !!value);
-  const tags: Tag[] = tagCounts.map((tagCount: TagCount): Tag => ({ ...tagCount, active: myTags.includes(tagCount.value) }));
+  const tags: TagOutput[] = tagCounts.map((tagCount: TagCount): TagOutput => ({ ...tagCount, active: myTags.includes(tagCount.value) }));
   return tags;
 };
 export const increaseTag = async (instance: FastifyInstance, tag: TagInput, media: MediaInput, user: UserInput): Promise<void> => {

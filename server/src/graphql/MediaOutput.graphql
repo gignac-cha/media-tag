@@ -1,4 +1,4 @@
-interface Media {
+interface MediaOutput {
   uuid: String!
   category: Category!
   title: String!
@@ -7,5 +7,5 @@ interface Media {
   series: [Series]!
   publisher: Company!
   publishedAt: Date!
-  tags: [Tag]!
+  tags: [TagOutput]!
 }

@@ -1,0 +1,6 @@
+enum TagAction {
+  ADD
+  REMOVE
+  INCREASE
+  DECREASE
+}
