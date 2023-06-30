@@ -6,7 +6,7 @@
   "scripts": {
     "build:esbuild": "node scripts/build.mjs",
     "build:tsc": "tsc",
-    "codegen": "ts-node src/codegen.ts",
+    "codegen": "ts-node scripts/codegen.ts",
     "start": "node dist/index.js",
     "dotenv": "set -o allexport && source .env && set +o allexport",
     "start:ts-node": "nodemon -w src -e ts -x \"ts-node -r ./plugins/registerGraphQL.js src/index.ts\"",
@@ -21,6 +21,7 @@
     "@fastify/websocket": "^8.1.0",
     "dayjs": "^1.11.7",
     "fastify": "^4.17.0",
+    "graphql": "^16.6.0",
     "mercurius": "^13.0.0",
     "mercurius-codegen": "^5.0.3",
     "pg": "^8.11.0",
