@@ -1,0 +1,6 @@
+query novels {
+  novels {
+    uuid
+    title
+  }
+}

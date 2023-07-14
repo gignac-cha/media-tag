@@ -1,80 +1,88 @@
-import { AggregationsRangeBucketKeys, AggregationsTermsAggregateBase, AggregationsValueCountAggregate, SearchHit } from '@elastic/elasticsearch/lib/api/types';
+import {
+  AggregationsRangeBucketKeys,
+  AggregationsTermsAggregateBase,
+  AggregationsValueCountAggregate,
+  SearchHit,
+  SearchResponse,
+} from '@elastic/elasticsearch/lib/api/types';
 import dayjs, { Dayjs } from 'dayjs';
 import { Media } from '../models/media';
 import { FastifyInstance } from 'fastify';
 import { MediaInput, TagAction, TagInput, TagOutput, UserInput } from '../../../types/graphql/generated';
 
+interface TagDocument {
+  mediaUUID: string;
+  userUUID: string;
+  value: string;
+  action: TagAction;
+  createdAt: string;
+}
+
 export const getTagCounts = async (instance: FastifyInstance, media: MediaInput): Promise<Nullable<TagCount[]>> => {
-  const termsAggregationsName = 'aggs:terms:value';
-  const valueCountAggregationsName = 'aggs:value_count:value';
-  const searchResponse = await instance.elasticsearchClient.search<
-    unknown,
-    { [termsAggregationsName]: AggregationsTermsAggregateBase<AggregationsRangeBucketKeys> }
-  >({
+  const searchResponse: SearchResponse<TagDocument> = await instance.elasticsearchClient.search<TagDocument>({
     index: 'tags-*',
     query: {
       term: {
         'mediaUUID.keyword': media.uuid,
       },
     },
-    aggs: {
-      [termsAggregationsName]: {
-        aggs: {
-          [valueCountAggregationsName]: {
-            value_count: {
-              field: 'value.keyword',
-            },
-          },
-        },
-        terms: {
-          field: 'value.keyword',
-          order: {
-            [valueCountAggregationsName]: 'desc',
-          },
-          size: 10,
-        },
-      },
-    },
-    size: 0,
+    sort: [{ createdAt: { order: 'asc' } }],
+    size: 10000,
   });
-  if (!searchResponse.aggregations || !Array.isArray(searchResponse.aggregations[termsAggregationsName].buckets)) {
-    return;
+  const tagCountMap = new Map<string, Set<string>>(
+    searchResponse.hits.hits
+      .map((value: SearchHit<TagDocument>) => value._source?.value)
+      .filter((value?: string): value is string => !!value)
+      .map((value: string) => [value, new Set<string>()]),
+  );
+  for (const value of searchResponse.hits.hits) {
+    if (value._source) {
+      switch (value._source.action) {
+        case TagAction.INCREASE: {
+          tagCountMap.get(value._source.value)?.add(value._source.userUUID);
+          break;
+        }
+        case TagAction.DECREASE: {
+          tagCountMap.get(value._source.value)?.delete(value._source.userUUID);
+          break;
+        }
+      }
+    }
   }
-  const tagCounts: TagCount[] = searchResponse.aggregations[termsAggregationsName].buckets
-    .map<TagCount | undefined>((bucket: AggregationsRangeBucketKeys) => (bucket.key ? { value: bucket.key, count: bucket.doc_count } : undefined))
-    .filter<TagCount>((tagCount?: TagCount): tagCount is TagCount => !!tagCount);
-  if (searchResponse.aggregations[termsAggregationsName].sum_other_doc_count) {
-    tagCounts.push({ value: '그 외', count: searchResponse.aggregations[termsAggregationsName].sum_other_doc_count });
-  }
+  const tagCounts: TagCount[] = Array.from(tagCountMap.entries())
+    .map(([value, set]: [key: string, value: Set<string>]) => ({ value, count: set.size }))
+    .sort((a, b) => -(a.count - b.count));
   return tagCounts;
 };
 export const getTagCount = async (instance: FastifyInstance, media: MediaInput, tag: TagInput): Promise<Nullable<TagCount>> => {
-  const valueCountAggregationsName = 'aggs:value_count:value';
-  const searchResponse = await instance.elasticsearchClient.search<unknown, { [valueCountAggregationsName]: AggregationsValueCountAggregate }>({
+  const searchResponse = await instance.elasticsearchClient.search<TagDocument>({
     index: 'tags-*',
     query: {
       bool: {
-        must: [{ match: { 'mediaUUID.keyword': media.uuid } }, { match: { 'value.keyword': tag.value } }],
+        must: [{ term: { 'mediaUUID.keyword': media.uuid } }, { term: { 'value.keyword': tag.value } }],
       },
     },
-    aggs: {
-      [valueCountAggregationsName]: {
-        value_count: {
-          field: 'value.keyword',
-        },
-      },
-    },
+    size: 10000,
   });
-  if (!searchResponse.aggregations || typeof searchResponse.aggregations[valueCountAggregationsName].value !== 'number') {
-    return;
+  const set = new Set<string>();
+  for (const value of searchResponse.hits.hits) {
+    if (value._source) {
+      switch (value._source.action) {
+        case TagAction.INCREASE: {
+          set.add(value._source.userUUID);
+          break;
+        }
+        case TagAction.DECREASE: {
+          set.delete(value._source.userUUID);
+          break;
+        }
+      }
+    }
   }
-  const tagCount: TagCount = {
-    value: tag.value,
-    count: searchResponse.aggregations[valueCountAggregationsName].value,
-  };
+  const tagCount: TagCount = { value: tag.value, count: set.size };
   return tagCount;
 };
-export const getMyTags = async (instance: FastifyInstance, tagCounts: TagCount[], media: Media, user?: UserInput): Promise<TagOutput[]> => {
+export const getMyTags = async (instance: FastifyInstance, tagCounts: TagCount[], media: MediaInput, user: UserInput): Promise<TagOutput[]> => {
   if (!user) {
     return tagCounts;
   }

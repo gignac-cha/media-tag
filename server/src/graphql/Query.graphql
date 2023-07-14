@@ -1,4 +1,5 @@
 type Query {
   novels: [NovelOutput]!
   novel(uuid: String!, user: UserInput): NovelOutput
+  users: [UserOutput]!
 }

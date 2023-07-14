@@ -1,0 +1,30 @@
+query novel($uuid: String!, $user: UserInput) {
+  novel(uuid: $uuid, user: $user) {
+    uuid
+    category
+    title
+    subtitle
+    creators {
+      uuid
+      name
+      jobs
+    }
+    series {
+      uuid
+      name
+    }
+    publisher {
+      uuid
+      name
+    }
+    publishedAt
+    tags {
+      value
+      count
+      active
+    }
+    volume
+    page
+    ISBN
+  }
+}

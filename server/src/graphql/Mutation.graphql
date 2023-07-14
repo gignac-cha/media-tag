@@ -1,4 +1,4 @@
 type Mutation {
-  tag(tag: TagInput!, media: MediaInput!, user: UserInput!): TagOutput
+  increaseTag(tag: TagInput!, media: MediaInput!, user: UserInput!): TagOutput
   test: Boolean
 }

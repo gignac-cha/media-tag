@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "vite build --outDir ../server/static --emptyOutDir",
     "start": "vite",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

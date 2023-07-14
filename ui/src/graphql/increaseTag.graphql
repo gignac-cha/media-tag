@@ -1,0 +1,7 @@
+mutation increaseTag($tag: TagInput!, $media: MediaInput!, $user: UserInput!) {
+  increaseTag(tag: $tag, media: $media, user: $user) {
+    value
+    count
+    active
+  }
+}

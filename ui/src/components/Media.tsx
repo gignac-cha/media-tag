@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
+import { styles } from './MediaStyle';
 import { Novel } from './Novel';
 
 type MediaParameters = {
@@ -15,5 +16,5 @@ export const Media = () => {
         return <Novel uuid={uuid} />;
     }
   }, [category, uuid]);
-  return <div>{component}</div>;
+  return <div className={styles.container}>{component}</div>;
 };

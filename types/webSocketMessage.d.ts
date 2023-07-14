@@ -1,6 +1,11 @@
 declare interface TagServerMessage {
   type: 'TAG';
-  tag: Tag;
+  tag: {
+    // TODO: fix here
+    value: string;
+    count: number;
+    active?: boolean;
+  };
 }
 
 declare type ServerMessage = TagServerMessage;

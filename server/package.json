@@ -7,9 +7,11 @@
     "build:esbuild": "node scripts/build.mjs",
     "build:tsc": "tsc",
     "codegen": "ts-node scripts/codegen.ts",
-    "start": "node dist/index.js",
     "dotenv": "set -o allexport && source .env && set +o allexport",
-    "start:ts-node": "nodemon -w src -e ts -x \"ts-node -r ./plugins/registerGraphQL.js src/index.ts\"",
+    "start": "node dist/index.js",
+    "start:watch": "nodemon -w src -w static -e ts,js,html,css -x \"yarn build:esbuild && yarn dotenv && yarn start\"",
+    "start:ts-node": "ts-node -r ./plugins/registerGraphQL.js src/index.ts",
+    "start:ts-node:watch": "nodemon -w src -e ts -x \"yarn dotenv && yarn start:ts-node\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

@@ -1,13 +1,22 @@
 import { FastifyInstance } from 'fastify';
-import { IResolvers } from 'mercurius';
 import WebSocket from 'ws';
-import { IncreaseTagInput, NovelOutput, QuerynovelArgs, TagOutput } from '../../../types/graphql/generated';
+import { IncreaseTagInput, Loaders, NovelOutput, QuerynovelArgs, Resolvers, TagOutput, UserOutput } from '../../../types/graphql/generated';
 import { Novel } from '../models/novel';
+import { User } from '../models/user';
 import { getMyTags, getTagCount, getTagCounts, increaseTag } from '../queries/tags';
+import { IResolvers } from 'mercurius';
+
+declare module 'mercurius' {
+  interface IResolvers extends Resolvers<import('mercurius').MercuriusContext> {}
+  interface MercuriusLoaders extends Loaders {}
+}
 
 export const getResolvers = (instance: FastifyInstance): IResolvers => ({
   Query: {
-    novels: async (): Promise<Novel[]> => instance.dataSource.getRepository(Novel).find(),
+    novels: async (): Promise<NovelOutput[]> => {
+      const novels: Novel[] = await instance.dataSource.getRepository(Novel).find();
+      return novels.map((novel: Novel) => ({ ...novel, tags: [] }));
+    },
     novel: async (_, { uuid, user }: QuerynovelArgs): Promise<Nullable<NovelOutput>> => {
       const novel: Nullable<Novel> = await instance.dataSource.getRepository(Novel).findOne({ where: { uuid } });
       if (!novel) {
@@ -23,9 +32,10 @@ export const getResolvers = (instance: FastifyInstance): IResolvers => ({
       const tags: TagOutput[] = await getMyTags(instance, tagCounts, novel, user);
       return { ...novel, tags };
     },
+    users: async (): Promise<UserOutput[]> => instance.dataSource.getRepository(User).find(),
   },
   Mutation: {
-    tag: async (_, { tag, media, user }: IncreaseTagInput): Promise<Nullable<TagOutput>> => {
+    increaseTag: async (_, { tag, media, user }: IncreaseTagInput): Promise<Nullable<TagOutput>> => {
       await increaseTag(instance, tag, media, user);
       const tagCount: Nullable<TagCount> = await getTagCount(instance, media, tag);
       if (!tagCount) {
@@ -41,7 +51,7 @@ export const getResolvers = (instance: FastifyInstance): IResolvers => ({
     },
     test: async (): Promise<boolean> => {
       instance.websocketServer.clients.forEach((client: WebSocket) => {
-        client.send(JSON.stringify({ test: 'test' }));
+        client.send(JSON.stringify({ type: 'TEST', test: Date.now() }));
       });
       return true;
     },
