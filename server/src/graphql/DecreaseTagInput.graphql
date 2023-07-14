@@ -1,0 +1,5 @@
+input DecreaseTagInput {
+  tag: TagInput!
+  media: MediaInput!
+  user: UserInput!
+}

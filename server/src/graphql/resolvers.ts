@@ -1,10 +1,10 @@
 import { FastifyInstance } from 'fastify';
+import { IResolvers } from 'mercurius';
 import WebSocket from 'ws';
-import { IncreaseTagInput, Loaders, NovelOutput, QuerynovelArgs, Resolvers, TagOutput, UserOutput } from '../../../types/graphql/generated';
+import { DecreaseTagInput, IncreaseTagInput, Loaders, NovelOutput, QuerynovelArgs, Resolvers, TagOutput, UserOutput } from '../../../types/graphql/generated';
 import { Novel } from '../models/novel';
 import { User } from '../models/user';
-import { getMyTags, getTagCount, getTagCounts, increaseTag } from '../queries/tags';
-import { IResolvers } from 'mercurius';
+import { decreaseTag, getMyTags, getTagCount, getTagCounts, increaseTag } from '../queries/tags';
 
 declare module 'mercurius' {
   interface IResolvers extends Resolvers<import('mercurius').MercuriusContext> {}
@@ -37,6 +37,20 @@ export const getResolvers = (instance: FastifyInstance): IResolvers => ({
   Mutation: {
     increaseTag: async (_, { tag, media, user }: IncreaseTagInput): Promise<Nullable<TagOutput>> => {
       await increaseTag(instance, tag, media, user);
+      const tagCount: Nullable<TagCount> = await getTagCount(instance, media, tag);
+      if (!tagCount) {
+        return;
+      }
+      instance.websocketServer.clients.forEach((client: WebSocket) => {
+        if (instance.websocketClients.get(client)?.mediaUUID === media.uuid) {
+          const message: TagServerMessage = { type: 'TAG', tag: tagCount };
+          client.send(JSON.stringify(message));
+        }
+      });
+      return tagCount;
+    },
+    decreaseTag: async (_, { tag, media, user }: DecreaseTagInput): Promise<Nullable<TagOutput>> => {
+      await decreaseTag(instance, tag, media, user);
       const tagCount: Nullable<TagCount> = await getTagCount(instance, media, tag);
       if (!tagCount) {
         return;

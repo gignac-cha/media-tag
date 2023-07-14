@@ -2,7 +2,7 @@ import { FunctionComponent, useCallback, useEffect, useLayoutEffect, useMemo, us
 import { Creator, Job, TagOutput, UserOutput } from '../../../types/graphql/generated';
 import { useClient } from '../hooks/websocket';
 import { useNovelQuery } from '../queries/novel';
-import { useTagMutation } from '../queries/tag';
+import { useIncreaseTagMutation } from '../queries/tag';
 import { useTestMutation } from '../queries/test';
 import { DebugPanel } from './DebugPanel';
 import { styles } from './NovelStyle';
@@ -14,7 +14,7 @@ interface NovelProperties {
 
 export const Novel: FunctionComponent<NovelProperties> = ({ uuid, user }) => {
   const { data: novelResponse, error: novelResponseError, refetch: refetchNovel } = useNovelQuery({ uuid, user });
-  const { mutate: tagRequest, error: tagRequestError } = useTagMutation();
+  const { mutate: increaseTagRequest, error: tagRequestError } = useIncreaseTagMutation();
   const writers = useMemo(
     () => novelResponse?.novel?.creators.filter((creator: Nullable<Creator>): creator is Creator => !!creator?.jobs.includes(Job.WRITER)) ?? [],
     [novelResponse?.novel?.creators],
@@ -71,7 +71,7 @@ export const Novel: FunctionComponent<NovelProperties> = ({ uuid, user }) => {
       <button onClick={() => testRequest()}>Test</button>
       <div>
         {tags.map((tag: TagOutput, index: number) => (
-          <button key={index} onClick={user ? () => tagRequest({ tag, media: { uuid }, user }) : undefined}>
+          <button key={index} onClick={user ? () => increaseTagRequest({ tag, media: { uuid }, user }) : undefined}>
             {tag.value} {tag.count}
           </button>
         ))}

@@ -1,12 +1,5 @@
-import {
-  AggregationsRangeBucketKeys,
-  AggregationsTermsAggregateBase,
-  AggregationsValueCountAggregate,
-  SearchHit,
-  SearchResponse,
-} from '@elastic/elasticsearch/lib/api/types';
+import { AggregationsRangeBucketKeys, AggregationsTermsAggregateBase, SearchHit, SearchResponse } from '@elastic/elasticsearch/lib/api/types';
 import dayjs, { Dayjs } from 'dayjs';
-import { Media } from '../models/media';
 import { FastifyInstance } from 'fastify';
 import { MediaInput, TagAction, TagInput, TagOutput, UserInput } from '../../../types/graphql/generated';
 
@@ -21,11 +14,7 @@ interface TagDocument {
 export const getTagCounts = async (instance: FastifyInstance, media: MediaInput): Promise<Nullable<TagCount[]>> => {
   const searchResponse: SearchResponse<TagDocument> = await instance.elasticsearchClient.search<TagDocument>({
     index: 'tags-*',
-    query: {
-      term: {
-        'mediaUUID.keyword': media.uuid,
-      },
-    },
+    query: { term: { 'mediaUUID.keyword': media.uuid } },
     sort: [{ createdAt: { order: 'asc' } }],
     size: 10000,
   });
@@ -62,6 +51,7 @@ export const getTagCount = async (instance: FastifyInstance, media: MediaInput, 
         must: [{ term: { 'mediaUUID.keyword': media.uuid } }, { term: { 'value.keyword': tag.value } }],
       },
     },
+    sort: [{ createdAt: { order: 'asc' } }],
     size: 10000,
   });
   const set = new Set<string>();
@@ -117,6 +107,21 @@ export const increaseTag = async (instance: FastifyInstance, tag: TagInput, medi
       userUUID: user.uuid,
       value: tag.value,
       action: TagAction.INCREASE,
+      createdAt: now.toDate(),
+    },
+    refresh: true,
+  });
+};
+export const decreaseTag = async (instance: FastifyInstance, tag: TagInput, media: MediaInput, user: UserInput): Promise<void> => {
+  const now: Dayjs = dayjs();
+  const index = `tags-${now.format('YYYY.MM.DD')}`;
+  await instance.elasticsearchClient.index({
+    index,
+    document: {
+      mediaUUID: media.uuid,
+      userUUID: user.uuid,
+      value: tag.value,
+      action: TagAction.DECREASE,
       createdAt: now.toDate(),
     },
     refresh: true,

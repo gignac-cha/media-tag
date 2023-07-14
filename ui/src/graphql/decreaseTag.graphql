@@ -1,0 +1,7 @@
+mutation decreaseTag($tag: TagInput!, $media: MediaInput!, $user: UserInput!) {
+  decreaseTag(tag: $tag, media: $media, user: $user) {
+    value
+    count
+    active
+  }
+}
