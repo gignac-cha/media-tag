@@ -97,7 +97,7 @@ export const getMyTags = async (instance: FastifyInstance, tagCounts: TagCount[]
   const tags: TagOutput[] = tagCounts.map((tagCount: TagCount): TagOutput => ({ ...tagCount, active: myTags.includes(tagCount.value) }));
   return tags;
 };
-export const increaseTag = async (instance: FastifyInstance, tag: TagInput, media: MediaInput, user: UserInput): Promise<void> => {
+const changeTag = async (instance: FastifyInstance, tag: TagInput, media: MediaInput, user: UserInput, action: TagAction) => {
   const now: Dayjs = dayjs();
   const index = `tags-${now.format('YYYY.MM.DD')}`;
   await instance.elasticsearchClient.index({
@@ -106,24 +106,15 @@ export const increaseTag = async (instance: FastifyInstance, tag: TagInput, medi
       mediaUUID: media.uuid,
       userUUID: user.uuid,
       value: tag.value,
-      action: TagAction.INCREASE,
+      action,
       createdAt: now.toDate(),
     },
     refresh: true,
   });
 };
+export const increaseTag = async (instance: FastifyInstance, tag: TagInput, media: MediaInput, user: UserInput): Promise<void> => {
+  await changeTag(instance, tag, media, user, TagAction.INCREASE);
+};
 export const decreaseTag = async (instance: FastifyInstance, tag: TagInput, media: MediaInput, user: UserInput): Promise<void> => {
-  const now: Dayjs = dayjs();
-  const index = `tags-${now.format('YYYY.MM.DD')}`;
-  await instance.elasticsearchClient.index({
-    index,
-    document: {
-      mediaUUID: media.uuid,
-      userUUID: user.uuid,
-      value: tag.value,
-      action: TagAction.DECREASE,
-      createdAt: now.toDate(),
-    },
-    refresh: true,
-  });
+  await changeTag(instance, tag, media, user, TagAction.DECREASE);
 };

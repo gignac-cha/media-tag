@@ -11,6 +11,20 @@ declare module 'mercurius' {
   interface MercuriusLoaders extends Loaders {}
 }
 
+const sendTagCount = async (instance: FastifyInstance, { tag, media }: IncreaseTagInput): Promise<Nullable<TagCount>> => {
+  const tagCount: Nullable<TagCount> = await getTagCount(instance, media, tag);
+  if (!tagCount) {
+    return;
+  }
+  instance.websocketServer.clients.forEach((client: WebSocket) => {
+    if (instance.websocketClients.get(client)?.mediaUUID === media.uuid) {
+      const message: TagServerMessage = { type: 'TAG', tag: tagCount };
+      client.send(JSON.stringify(message));
+    }
+  });
+  return tagCount;
+};
+
 export const getResolvers = (instance: FastifyInstance): IResolvers => ({
   Query: {
     novels: async (): Promise<NovelOutput[]> => {
@@ -37,31 +51,11 @@ export const getResolvers = (instance: FastifyInstance): IResolvers => ({
   Mutation: {
     increaseTag: async (_, { tag, media, user }: IncreaseTagInput): Promise<Nullable<TagOutput>> => {
       await increaseTag(instance, tag, media, user);
-      const tagCount: Nullable<TagCount> = await getTagCount(instance, media, tag);
-      if (!tagCount) {
-        return;
-      }
-      instance.websocketServer.clients.forEach((client: WebSocket) => {
-        if (instance.websocketClients.get(client)?.mediaUUID === media.uuid) {
-          const message: TagServerMessage = { type: 'TAG', tag: tagCount };
-          client.send(JSON.stringify(message));
-        }
-      });
-      return tagCount;
+      return sendTagCount(instance, { tag, media, user });
     },
     decreaseTag: async (_, { tag, media, user }: DecreaseTagInput): Promise<Nullable<TagOutput>> => {
       await decreaseTag(instance, tag, media, user);
-      const tagCount: Nullable<TagCount> = await getTagCount(instance, media, tag);
-      if (!tagCount) {
-        return;
-      }
-      instance.websocketServer.clients.forEach((client: WebSocket) => {
-        if (instance.websocketClients.get(client)?.mediaUUID === media.uuid) {
-          const message: TagServerMessage = { type: 'TAG', tag: tagCount };
-          client.send(JSON.stringify(message));
-        }
-      });
-      return tagCount;
+      return sendTagCount(instance, { tag, media, user });
     },
     test: async (): Promise<boolean> => {
       instance.websocketServer.clients.forEach((client: WebSocket) => {
